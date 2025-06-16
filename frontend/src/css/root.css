@@ -1,0 +1,9 @@
+#root {
+    max-width: 100%;
+    padding: 2rem;
+    text-align: center;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center; 
+    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+}

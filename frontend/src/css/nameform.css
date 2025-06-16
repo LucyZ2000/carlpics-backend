@@ -1,0 +1,52 @@
+.textarea-container{
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+textarea {
+  padding: 0.5rem;
+  height: 1rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  width: 100%;
+  resize: none;          
+  user-select: none;   
+  overflow: hidden;
+  pointer-events: auto;  
+}
+
+.submit-button {
+  min-width: 30%;
+  padding: 12px;
+  margin-bottom: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #1e40af; /* blue-700 */
+}
+
+.submit-button.submitted {
+  background-color: #22c55e; /* green-500 */
+  cursor: not-allowed;
+}
+
+.submit-another {
+  cursor: pointer;
+  text-decoration: underline;
+  user-select: none;
+}
+.error-inline {
+  color: red;
+}
