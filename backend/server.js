@@ -50,6 +50,7 @@ app.get('/image/:id', (req, res) => {
   if (fs.existsSync(imagePath)) {
     res.sendFile(imagePath);
   } else {
+    console.log('Looking for image:', imagePath);
     res.status(404).send('Image not found');
   }
 });
