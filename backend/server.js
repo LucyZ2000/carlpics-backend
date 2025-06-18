@@ -5,16 +5,25 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import dotenv from 'dotenv';
+
+// load .env variables
+dotenv.config();
 
 // set up the server
 const app = express();
 app.use(cors());
+//
+app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // set up the initial Images database
-const images_database = new sqlite3.Database(':memory:');
-const submissions_database = new sqlite3.Database(':memory:');
+// const images_database = new sqlite3.Database(':memory:');
+// const submissions_database = new sqlite3.Database(':memory:');
+
+const images_database = new sqlite3.Database('./images.db')
+const submissions_database = new sqlite3.Database('./submissions.db')
 
 images_database.serialize(() => {
   images_database.run("CREATE TABLE images (id INTEGER PRIMARY KEY, title TEXT, dates TEXT, people_depicted TEXT)");
@@ -64,6 +73,22 @@ app.get('/all-metadata', (req, res) => {
   });
 });
 
+app.get('/admin/submissions', (res, req) => {
+  const authHeader = req.headersSent.authorization;
+
+  if (!authHeader || authHeader != `Bearer ${process.env.ADMIN_TOKEN}`) {
+    return res.status(401).send('Unauthorized');
+  }
+
+  submissions_database.all("SELECT * FROM submissions", (err, rows) => {
+    if (err) {
+      return res.status(500).send('Database error');
+    }
+
+    res.json(rows);
+  });
+});
+
 // process the submissions of names and update the database
 app.post('/add-name', express.json(), (req, res) => {
   const { picid, firstName, middleName, lastName } = req.body;
@@ -94,6 +119,8 @@ app.post('/add-name', express.json(), (req, res) => {
     res.json({ success: true });
   });
 });
+
+
 
 // export the submissions to a TSV file on close
 function exportSubmissionsToTSV() {
