@@ -77,7 +77,7 @@ const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.ADMIN_TOKEN;
 
 app.get('/admin/submissions', (req, res) => {
-  const auth = req.headersSent.authorization;
+  const auth = req.headers.authorization;
 
   if (!auth || !auth.startsWith('Basic ')) {
     res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
