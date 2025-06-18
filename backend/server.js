@@ -73,16 +73,28 @@ app.get('/all-metadata', (req, res) => {
   });
 });
 
-app.get('/admin/submissions', (res, req) => {
-  const authHeader = req.headersSent.authorization;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_TOKEN;
 
-  if (!authHeader || authHeader != `Bearer ${process.env.ADMIN_TOKEN}`) {
-    return res.status(401).send('Unauthorized');
+app.get('/admin/submissions', (res, req) => {
+  const auth = req.headersSent.authorization;
+
+  if (!auth || !auth.startsWith('Basic ')) {
+    res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
+    return res.status(401).send('Authentication required');
+  }
+
+  const base64Credentials = auth.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString();
+  const [username, password] = credentials.split(':');
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(403).send('Forbidden');
   }
 
   submissions_database.all("SELECT * FROM submissions", (err, rows) => {
     if (err) {
-      return res.status(500).send('Database error');
+      res.status(500).send('Database error');
     }
 
     res.json(rows);
