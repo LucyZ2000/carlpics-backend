@@ -76,7 +76,7 @@ app.get('/all-metadata', (req, res) => {
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.ADMIN_TOKEN;
 
-app.get('/admin/submissions', (res, req) => {
+app.get('/admin/submissions', (req, res) => {
   const auth = req.headersSent.authorization;
 
   if (!auth || !auth.startsWith('Basic ')) {
@@ -102,7 +102,7 @@ app.get('/admin/submissions', (res, req) => {
 });
 
 // process the submissions of names and update the database
-app.post('/add-name', express.json(), (res, req) => {
+app.post('/add-name', express.json(), (req, res) => {
   const { picid, firstName, middleName, lastName } = req.body;
   if (!picid || !firstName || !lastName) {
     return res.status(400).json({ error: 'Missing required fields' });
