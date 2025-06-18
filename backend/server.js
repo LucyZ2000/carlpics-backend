@@ -102,7 +102,7 @@ app.get('/admin/submissions', (res, req) => {
 });
 
 // process the submissions of names and update the database
-app.post('/add-name', express.json(), (req, res) => {
+app.post('/add-name', express.json(), (res, req) => {
   const { picid, firstName, middleName, lastName } = req.body;
   if (!picid || !firstName || !lastName) {
     return res.status(400).json({ error: 'Missing required fields' });
