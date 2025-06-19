@@ -17,6 +17,7 @@ app.use(cors());
 app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const submissionFilePath = path.join(__dirname, 'submissions.tsv');
 
 // set up the initial Images database
 // const images_database = new sqlite3.Database(':memory:');
@@ -38,7 +39,7 @@ function exportSubmissionsToTSV() {
         tsv.push(`${row.id}\t${row.people_depicted || ""}`);
       }
 
-      fs.writeFile("submissions.tsv", tsv.join("\n"), "utf-8", (err) => {
+      fs.writeFile(submissionFilePath, tsv.join("\n"), "utf-8", (err) => {
         if (err) {
           console.error("Error writing TSV file:", err);
           return reject(err);
@@ -128,7 +129,7 @@ app.get('/admin/submissions', (req, res) => {
 });
 
 app.get('/download-submissions', (req, res) => {
-    const auth = req.headers.authorization;
+  const auth = req.headers.authorization;
 
   if (!auth || !auth.startsWith('Basic ')) {
     res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
@@ -143,7 +144,7 @@ app.get('/download-submissions', (req, res) => {
     return res.status(403).send('Forbidden');
   }
 
-  res.download('submissions.tsv');
+  res.download(submissionFilePath);
 });
 
 
@@ -176,8 +177,8 @@ app.post('/add-name', express.json(), (req, res) => {
 
     res.json({ success: true });
   });
-  exportSubmissionsToTSV();
 
+  exportSubmissionsToTSV();
 });
 
 
