@@ -25,6 +25,32 @@ const __dirname = dirname(__filename);
 const images_database = new sqlite3.Database('./images.db')
 const submissions_database = new sqlite3.Database('./submissions.db')
 
+function exportSubmissionsToTSV() {
+  return new Promise((resolve, reject) => {
+    submissions_database.all("SELECT * FROM submissions", (err, rows) => {
+      if (err) {
+        console.error("Failed to export submissions:", err);
+        return reject(err);
+      }
+
+      const tsv = ["id\tpeople_depicted"];
+      for (const row of rows) {
+        tsv.push(`${row.id}\t${row.people_depicted || ""}`);
+      }
+
+      fs.writeFile("submissions.tsv", tsv.join("\n"), "utf-8", (err) => {
+        if (err) {
+          console.error("Error writing TSV file:", err);
+          return reject(err);
+        }
+        console.log("Submissions exported to submissions.tsv");
+        resolve();
+      });
+    });
+  });
+}
+
+
 images_database.serialize(() => {
   images_database.run("CREATE TABLE images (id INTEGER PRIMARY KEY, title TEXT, dates TEXT, people_depicted TEXT)");
 
@@ -101,6 +127,26 @@ app.get('/admin/submissions', (req, res) => {
   });
 });
 
+app.get('/download-submissions', (req, res) => {
+    const auth = req.headers.authorization;
+
+  if (!auth || !auth.startsWith('Basic ')) {
+    res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
+    return res.status(401).send('Authentication required');
+  }
+
+  const base64Credentials = auth.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString();
+  const [username, password] = credentials.split(':');
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(403).send('Forbidden');
+  }
+
+  res.download('submissions.tsv');
+});
+
+
 // process the submissions of names and update the database
 app.post('/add-name', express.json(), (req, res) => {
   const { picid, firstName, middleName, lastName } = req.body;
@@ -130,37 +176,9 @@ app.post('/add-name', express.json(), (req, res) => {
 
     res.json({ success: true });
   });
+  exportSubmissionsToTSV();
+
 });
-
-
-
-// export the submissions to a TSV file on close
-function exportSubmissionsToTSV() {
-  return new Promise((resolve, reject) => {
-    submissions_database.all("SELECT * FROM submissions", (err, rows) => {
-      if (err) {
-        console.error("Failed to export submissions:", err);
-        return reject(err);
-      }
-
-      const tsv = ["id\tpeople_depicted"];
-      for (const row of rows) {
-        tsv.push(`${row.id}\t${row.people_depicted || ""}`);
-      }
-
-      fs.writeFile("submissions.tsv", tsv.join("\n"), "utf-8", (err) => {
-        if (err) {
-          console.error("Error writing TSV file:", err);
-          return reject(err);
-        }
-        console.log("Submissions exported to submissions.tsv");
-        resolve();
-      });
-    });
-  });
-}
-
-setInterval(exportSubmissionsToTSV, 30 * 60 * 1000);
 
 
 process.on('SIGINT', () => {
@@ -176,7 +194,6 @@ process.on('SIGINT', () => {
       process.exit(1);
     });
 });
-
 
 
 const PORT = process.env.PORT || 3000;
