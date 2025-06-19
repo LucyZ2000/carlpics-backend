@@ -160,6 +160,8 @@ function exportSubmissionsToTSV() {
   });
 }
 
+setInterval(exportSubmissionsToTSV, 30 * 60 * 1000);
+
 
 process.on('SIGINT', () => {
   console.log("\nShutting down server...");
@@ -174,6 +176,7 @@ process.on('SIGINT', () => {
       process.exit(1);
     });
 });
+
 
 
 const PORT = process.env.PORT || 3000;
