@@ -169,16 +169,33 @@ app.post('/add-name', express.json(), (req, res) => {
         existing.push(fullName);
       }
       updatedValue = existing.join('; ');
-      submissions_database.run("UPDATE submissions SET people_depicted = ? WHERE id = ?", [updatedValue, picid]);
+      submissions_database.run("UPDATE submissions SET people_depicted = ? WHERE id = ?", 
+                                [updatedValue, picid],
+                                function (err) {
+                                  if (err) return res.status(500).json({ error: 'Update failed'});
+                                  exportSubmissionsToTSV().then(() => {
+                                    res.json({ success: true});
+                                  }).catch((err) => {
+                                    res.status(500).json({ error: 'TSV export failed' });
+                                  });
+                                }
+                              );
     } else {
       updatedValue = fullName;
-      submissions_database.run("INSERT INTO submissions (id, people_depicted) VALUES (?, ?)", [picid, updatedValue]);
+      submissions_database.run("INSERT INTO submissions (id, people_depicted) VALUES (?, ?)", 
+                                [picid, updatedValue],
+
+                                function (err) {
+                                  if (err) return res.status(500).json({ error: 'Insert failed'});
+                                  exportSubmissionsToTSV().then(() => {
+                                    res.json({ success: true});
+                                  }).catch((err) => {
+                                    res.status(500).json({ error: 'TSV export failed' });
+                                  });
+                                }
+      );
     }
-
-    res.json({ success: true });
   });
-
-  exportSubmissionsToTSV();
 });
 
 
